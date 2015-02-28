@@ -190,7 +190,7 @@ public class SugarRecord {
                 SQLiteDatabase.CONFLICT_REPLACE);
 
         if (SugarRecord.class.isAssignableFrom(object.getClass())) {
-            ReflectionUtil.setFieldValueForId(object, id);
+            ((SugarRecord) object).setId(id); // jivimberg's Issue #201
         }
         Log.i("Sugar", object.getClass().getSimpleName() + " saved : " + id);
 
@@ -201,7 +201,8 @@ public class SugarRecord {
         List<Field> columns = ReflectionUtil.getTableFields(object.getClass());
 
         for (Field field : columns) {
-            if (field.getClass().isAnnotationPresent(Table.class)) {
+            // Retrive the subclass of SugarRecord and check if this field corresponds to a Table in the app
+            if (field.getType().isAnnotationPresent(Table.class)) {
                 try {
                     long id = cursor.getLong(cursor.getColumnIndex(NamingHelper.toSQLName(field)));
                     field.set(object, (id > 0) ? findById(field.getType(), id) : null);
